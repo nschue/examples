@@ -1,0 +1,14 @@
+# BUILD
+load("@protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+load("@protobuf//bazel:proto_library.bzl", "proto_library")
+
+proto_library(
+    name = "helloworld_proto",
+    srcs = ["helloworld.proto"],
+    # deps = ["//:helloworld_proto"],
+)
+
+java_proto_library(
+    name = "helloworld_java_proto",
+    deps = [":helloworld_proto"],
+) 

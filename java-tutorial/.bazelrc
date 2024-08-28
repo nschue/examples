@@ -1,0 +1,7 @@
+build --java_language_version=17
+build --java_runtime_version=17
+build --tool_java_language_version=17
+build --tool_java_runtime_version=17
+
+# Enable Bazel's module system
+common --noenable_bzlmod

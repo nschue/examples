@@ -29,28 +29,75 @@ maven_install(
     ],
 )
 
-
-# Set up rules_proto
 http_archive(
-    name = "rules_proto",
-    sha256 = "b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
-    strip_prefix = "rules_proto-3.0.0",
-    urls = ["https://github.com/bazelbuild/rules_proto/archive/refs/tags/3.0.0.tar.gz"],
+    name = "protobuf",
+    sha256 = "1ED0260A8509F43EE3AA66088F849C2B4655871676C053E80DBC4D129E2A643A",
+    strip_prefix = "protobuf-3.27.3",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.27.3.tar.gz"],
+)
+# Needed because protobuf_deps brings rules_python 0.26.0 which is broken:
+# https://github.com/bazelbuild/rules_python/issues/1543
+http_archive(
+    name = "rules_python",
+    sha256 = "5868e73107a8e85d8f323806e60cad7283f34b32163ea6ff1020cf27abef6036",
+    strip_prefix = "rules_python-0.25.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.25.0/rules_python-0.25.0.tar.gz",
 )
 
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
-rules_proto_dependencies()
-rules_proto_toolchains()
+protobuf_deps()
 
-# Set up rules_java
 http_archive(
-    name = "rules_java",
-    sha256 = "b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
-    strip_prefix = "rules_java-5.0.0",
-    urls = ["https://github.com/bazelbuild/rules_java/archive/refs/tags/5.0.0.tar.gz"],
+    name = "io_bazel_rules_go",
+    integrity = "sha256-M6zErg9wUC20uJPJ/B3Xqb+ZjCPn/yxFF3QdQEmpdvg=",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.48.0/rules_go-v0.48.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.48.0/rules_go-v0.48.0.zip",
+    ],
 )
 
-load("@rules_java//java:repositories.bzl", "rules_java_dependencies")
+http_archive(
+    name = "bazel_gazelle",
+    integrity = "sha256-12v3pg/YsFBEQJDfooN6Tq+YKeEWVhjuNdzspcvfWNU=",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.37.0/bazel-gazelle-v0.37.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.37.0/bazel-gazelle-v0.37.0.tar.gz",
+    ],
+)
 
-rules_java_dependencies()
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+############################################################
+# Define your own dependencies here using go_repository.
+# Else, dependencies declared by rules_go/gazelle will be used.
+# The first declaration of an external repository "wins".
+############################################################
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.20.5")
+
+gazelle_dependencies()
+
+
+http_archive(
+    name = "contrib_rules_jvm",
+    sha256 = "a06555618ed249fdfd8b138505de9f012a98eae4672ef00aa3cfc5f154ade6c7",
+    strip_prefix = "rules_jvm-0.26.0",
+    url = "https://github.com/bazel-contrib/rules_jvm/releases/download/v0.26.0/rules_jvm-v0.26.0.tar.gz",
+)
+
+# Fetches the contrib_rules_jvm dependencies.
+# If you want to have a different version of some dependency,
+# you should fetch it *before* calling this.
+load("@contrib_rules_jvm//:repositories.bzl", "contrib_rules_jvm_deps")
+
+contrib_rules_jvm_deps()
+
+# Now ensure that the downloaded deps are properly configured
+load("@contrib_rules_jvm//:setup.bzl", "contrib_rules_jvm_setup")
+
+contrib_rules_jvm_setup()

@@ -16,20 +16,17 @@ java_library(
     visibility = ["//src/main/java/com/example/cmdline:__pkg__"],
 )
 
-# BUILD
-load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_java//java:defs.bzl", "java_library")
+load("@bazel_gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
 
-proto_library(
-    name = "helloworld_proto",
-    srcs = ["helloworld.proto"],
-    deps = [],
+# gazelle:prefix github.com/your/project
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle_bin",
 )
 
-java_library(
-    name = "helloworld_java",
-    srcs = [":helloworld_proto"],
-    deps = [
-        "@rules_proto//proto:java_proto_library",
+gazelle_binary(
+    name = "gazelle_bin",
+    languages = DEFAULT_LANGUAGES + [
+        "@contrib_rules_jvm//java/gazelle",
     ],
 )
